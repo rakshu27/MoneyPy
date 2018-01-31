@@ -8,6 +8,8 @@ setuptools.setup(
     author="learnandcode.it",
 
     description="A python framework to build custom budget-analysis workflows and applications",
+    
+    packages=setuptools.find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "test*"]),
 
     license='MIT',
 
