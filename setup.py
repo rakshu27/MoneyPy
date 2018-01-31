@@ -11,8 +11,6 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
 
-    test_suite='tests',
-
     license='MIT',
 
     install_requires=[],
