@@ -20,4 +20,4 @@ class ExpenseDetails(Base):
 class ExpenseLabels(Base):
     __tablename__ ='expense_labels'
     id= Column(String, primary_key=True)
-    label = Column( String, nullable=False )
+    label = Column(String, nullable=False)
