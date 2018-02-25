@@ -1,4 +1,5 @@
 import os
+import tempfile
 import unittest
 from datetime import date
 
@@ -7,6 +8,7 @@ from sqlalchemy.orm import sessionmaker, exc
 
 from moneypy.exporters.models import Base, ExpenseDetails, ExpenseLabels
 
+TEST_DB_PATH = "sqlite://"  # This path creates the DB in memory. So no file is actually created
 
 class TestDatabase(unittest.TestCase):
     sampleRecords = [{
@@ -72,7 +74,7 @@ class TestDatabase(unittest.TestCase):
         return labelInstances
 
     def setUp(self):
-        engine = create_engine('sqlite:///tmp/test_money_manager.db', echo=True)
+        engine = create_engine(TEST_DB_PATH, echo=False)
         self.engine = engine
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
@@ -83,11 +85,6 @@ class TestDatabase(unittest.TestCase):
     def tearDown(self):
         self.session.close()
         Base.metadata.drop_all(self.engine)
-        try:
-            filename = '.\\data\\test_money_manager.db'
-            os.remove(filename)
-        except FileNotFoundError:
-            pass
 
     def test_recordInsertionInExpenseDetailsTableByCheckingCount(self):
         count = self.session.query(ExpenseDetails).count()
