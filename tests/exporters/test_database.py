@@ -1,5 +1,3 @@
-import os
-import tempfile
 import unittest
 from datetime import date
 
@@ -9,6 +7,7 @@ from sqlalchemy.orm import sessionmaker, exc
 from moneypy.exporters.models import Base, ExpenseDetails, ExpenseLabels
 
 TEST_DB_PATH = "sqlite://"  # This path creates the DB in memory. So no file is actually created
+
 
 class TestDatabase(unittest.TestCase):
     sampleRecords = [{
@@ -45,7 +44,7 @@ class TestDatabase(unittest.TestCase):
         }]
     labelCount = 0
 
-    def populateSampleData(self):
+    def populate_sample_data(self):
         for record in self.sampleRecords:
             expenseid = record['id']
             amount = record['amount']
@@ -53,12 +52,12 @@ class TestDatabase(unittest.TestCase):
             description = record['description']
             expenseDate = record['date']
             labels = record['labels']
-            labelInstances = self.getLabelInstances(labels)
+            labelInstances = self.get_label_instances(labels)
             expenseObject = ExpenseDetails(id=expenseid, date=expenseDate, amount=amount, recipient=recipient,
                                            description=description, labels=labelInstances)
             self.session.add(expenseObject)
 
-    def getLabelInstances(self, labels):
+    def get_label_instances(self, labels):
         labelInstances = []
         for label in labels:
             try:
@@ -79,14 +78,14 @@ class TestDatabase(unittest.TestCase):
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         self.session = Session()
-        self.populateSampleData()
+        self.populate_sample_data()
         self.session.commit()
 
     def tearDown(self):
         self.session.close()
         Base.metadata.drop_all(self.engine)
 
-    def test_recordInsertionInExpenseDetailsTableByCheckingCount(self):
+    def test_record_insertion_in_expense_details_table(self):
         count = self.session.query(ExpenseDetails).count()
         self.assertEqual(count, len(self.sampleRecords),
                          'Given records are not inserted properly in ExpenseDetails table')
@@ -111,7 +110,7 @@ class TestDatabase(unittest.TestCase):
         except exc.MultipleResultsFound:
             raise
 
-    def test_filterExpensesByLabel(self):
+    def test_filter_expense_by_label(self):
         sampleLabel = 'Entertainment'
         expectedExpenseIds = ['23', '27', '29']
         actualExpenseIds = []
