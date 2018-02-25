@@ -90,12 +90,12 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(count, len(self.sampleRecords),
                          'Given records are not inserted properly in ExpenseDetails table')
 
-    def test_backPopulationInExpenseLabelsTableByCheckingCount(self):
+    def test_back_population_in_expense_labels_table(self):
         count = self.session.query(ExpenseLabels).count()
         self.assertEqual(count, self.labelCount,
                          'Labels are not back populated correctly in ExpenseLabels Table')
 
-    def test_filterLabelsByExpenseId(self):
+    def test_filter_labels_by_expense_id(self):
         record = self.sampleRecords[3]
         recordId = record['id']
         expectedLabels = record['labels']
