@@ -68,8 +68,6 @@ class TestDatabase(unittest.TestCase):
                 labelInstance = ExpenseLabels(id=labelId, label=label)
                 self.labelCount += 1
                 labelInstances.append(labelInstance)
-            except exc.MultipleResultsFound:
-                raise
         return labelInstances
 
     def setUp(self):
