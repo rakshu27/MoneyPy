@@ -100,26 +100,16 @@ class TestDatabase(unittest.TestCase):
         recordId = record['id']
         expectedLabels = record['labels']
         actualLabels = []
-        try:
-            expenseInstance = self.session.query(ExpenseDetails).filter_by(id=recordId).one()
-            for labelInstance in expenseInstance.labels:
-                actualLabels.append(labelInstance.label)
-            self.assertCountEqual(actualLabels, expectedLabels, 'Labels are not filtered correctly')
-        except exc.NoResultFound:
-            raise
-        except exc.MultipleResultsFound:
-            raise
+        expenseInstance = self.session.query(ExpenseDetails).filter_by(id=recordId).one()
+        for labelInstance in expenseInstance.labels:
+            actualLabels.append(labelInstance.label)
+        self.assertCountEqual(actualLabels, expectedLabels, 'Labels are not filtered correctly')
 
     def test_filter_expense_by_label(self):
         sampleLabel = 'Entertainment'
         expectedExpenseIds = ['23', '27', '29']
         actualExpenseIds = []
-        try:
-            labelInstance = self.session.query(ExpenseLabels).filter_by(label=sampleLabel).one()
-            for expenseInstance in labelInstance.expenses:
-                actualExpenseIds.append(expenseInstance.id)
-            self.assertCountEqual(actualExpenseIds, expectedExpenseIds, 'Labels are not filtered correctly')
-        except exc.NoResultFound:
-            raise
-        except exc.MultipleResultsFound:
-            raise
+        labelInstance = self.session.query(ExpenseLabels).filter_by(label=sampleLabel).one()
+        for expenseInstance in labelInstance.expenses:
+            actualExpenseIds.append(expenseInstance.id)
+        self.assertCountEqual(actualExpenseIds, expectedExpenseIds, 'Labels are not filtered correctly')
