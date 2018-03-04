@@ -1,3 +1,4 @@
+"""Installation instruction for the MoneyPy module."""
 import setuptools
 
 setuptools.setup(
