@@ -55,7 +55,7 @@ python -m unittest discover
 ### Git
 
 In general the [GitFlow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) concept is used for this project.
-This means, that if you want to develop a new feature you need to do so in a new git branch which is based on the `devel` branch or the repository.
+This means, that if you want to develop a new feature you need to do so in a new git branch which is based on the `devel` branch of the repository.
 If you are part of the MoneyPy team, you can either do this in the repository itself or in your own fork.
 If you are not part of the team, you have to use a fork.
 
