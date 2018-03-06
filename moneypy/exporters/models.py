@@ -4,9 +4,10 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 association_table = Table('association', Base.metadata,
-                                Column('expenseid', String, ForeignKey('expense_details.id')),
-                                Column('labelid', String, ForeignKey('expense_labels.id')),
+                            Column('expenseid', String, ForeignKey('expense_details.id')),
+                            Column('labelid', String, ForeignKey('expense_labels.id')),
                           )
+
 
 class ExpenseDetails(Base):
     __tablename__ = 'expense_details'
@@ -17,7 +18,10 @@ class ExpenseDetails(Base):
     description = Column(String, nullable=True)
     labels = relationship('ExpenseLabels', secondary=association_table, backref='expenses')
 
+
 class ExpenseLabels(Base):
-    __tablename__ ='expense_labels'
+    __tablename__ = 'expense_labels'
     id= Column(String, primary_key=True)
-    label = Column(String, nullable=False)
+    label = Column(String, nullable=False, unique=True)
+
+
