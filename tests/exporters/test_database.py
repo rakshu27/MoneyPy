@@ -5,12 +5,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, exc
 
 from moneypy.exporters.models import Base, ExpenseDetails, ExpenseLabels
+from moneypy.exporters.mixin import CRUDMixin
 
-TEST_DB_PATH = "sqlite://"  # This path creates the DB in memory. So no file is actually created
+# This path creates the DB in memory. So no file is actually created
+TEST_DB_PATH = "sqlite://"
 
 
 class TestDatabase(unittest.TestCase):
-    sampleRecords = [{
+
+    sample_records = [{
         'id': '23',
         'amount': 500,
         'date': date(2017, 10, 17),
@@ -25,7 +28,7 @@ class TestDatabase(unittest.TestCase):
             'recipient': 'Amazon',
             'description': 'Python Book',
             'labels': ['Education', 'Online shopping']
-        },
+    },
         {
             'id': '27',
             'amount': 2000,
@@ -33,7 +36,7 @@ class TestDatabase(unittest.TestCase):
             'recipient': 'Netflix',
             'description': 'Account Subscription to watch movies',
             'labels': ['Entertainment']
-        },
+    },
         {
             'id': '29',
             'amount': 2000,
@@ -41,73 +44,71 @@ class TestDatabase(unittest.TestCase):
             'recipient': 'Amazon',
             'description': 'Bought new dresses',
             'labels': ['Entertainment', 'Online shopping']
-        }]
-    labelCount = 0
+    }]
 
-    def populate_sample_data(self):
-        for record in self.sampleRecords:
-            expenseid = record['id']
-            amount = record['amount']
-            recipient = record['recipient']
-            description = record['description']
-            expenseDate = record['date']
-            labels = record['labels']
-            labelInstances = self.get_label_instances(labels)
-            expenseObject = ExpenseDetails(id=expenseid, date=expenseDate, amount=amount, recipient=recipient,
-                                           description=description, labels=labelInstances)
-            self.session.add(expenseObject)
-
-    def get_label_instances(self, labels):
-        labelInstances = []
-        for label in labels:
-            try:
-                labelInstance = self.session.query(ExpenseLabels).filter_by(label=label).one()
-                labelInstances.append(labelInstance)
-            except exc.NoResultFound:
-                labelId = 'Label' + str(self.labelCount)
-                labelInstance = ExpenseLabels(id=labelId, label=label)
-                self.labelCount += 1
-                labelInstances.append(labelInstance)
-        return labelInstances
+    def __create_test_data(self):
+        for record in self.sample_records:
+            self.db_instance.insert(record=record)
 
     def setUp(self):
-        engine = create_engine(TEST_DB_PATH, echo=False)
-        self.engine = engine
-        Base.metadata.create_all(engine)
-        Session = sessionmaker(bind=engine)
+        self.engine = create_engine(TEST_DB_PATH, echo=False)
+        Base.metadata.create_all(self.engine)
+        self.db_instance = CRUDMixin(db_engine=self.engine)
+        Session = sessionmaker(bind=self.engine)
         self.session = Session()
-        self.populate_sample_data()
-        self.session.commit()
 
     def tearDown(self):
-        self.session.close()
         Base.metadata.drop_all(self.engine)
 
     def test_record_insertion_in_expense_details_table(self):
-        count = self.session.query(ExpenseDetails).count()
-        self.assertEqual(count, len(self.sampleRecords),
+        self.__create_test_data()
+        count = self.db_instance.get_rows_count()
+        self.assertEqual(count, len(self.sample_records),
                          'Given records are not inserted properly in ExpenseDetails table')
 
     def test_back_population_in_expense_labels_table(self):
+        self.__create_test_data()
         count = self.session.query(ExpenseLabels).count()
-        self.assertEqual(count, self.labelCount,
+        self.assertEqual(count, 4,
                          'Labels are not back populated correctly in ExpenseLabels Table')
 
     def test_filter_labels_by_expense_id(self):
-        record = self.sampleRecords[3]
-        recordId = record['id']
-        expectedLabels = record['labels']
-        actualLabels = []
-        expenseInstance = self.session.query(ExpenseDetails).filter_by(id=recordId).one()
-        for labelInstance in expenseInstance.labels:
-            actualLabels.append(labelInstance.label)
-        self.assertCountEqual(actualLabels, expectedLabels, 'Labels are not filtered correctly')
+        self.__create_test_data()
+        record = self.sample_records[3]
+        actual_labels = []
+        expected_instance = self.db_instance.read_by_id(id=record['id'])
+        for label_instance in expected_instance.labels:
+            actual_labels.append(label_instance.label)
+        self.assertCountEqual(actual_labels, record['labels'],
+                              'Labels are not filtered correctly')
 
     def test_filter_expense_by_label(self):
-        sampleLabel = 'Entertainment'
-        expectedExpenseIds = ['23', '27', '29']
-        actualExpenseIds = []
-        labelInstance = self.session.query(ExpenseLabels).filter_by(label=sampleLabel).one()
-        for expenseInstance in labelInstance.expenses:
-            actualExpenseIds.append(expenseInstance.id)
-        self.assertCountEqual(actualExpenseIds, expectedExpenseIds, 'Labels are not filtered correctly')
+        self.__create_test_data()
+        sample_label = 'Entertainment'
+        expected_expense_ids = ['23', '27', '29']
+        actual_expense_ids = []
+        label_instance = self.db_instance.read_by_label(label=sample_label)
+        for expense_instance in label_instance.expenses:
+            actual_expense_ids.append(expense_instance.id)
+        self.assertCountEqual(
+            actual_expense_ids, expected_expense_ids, 'Labels are not filtered correctly')
+
+    def test_update_expense_by_id(self):
+        self.__create_test_data()
+        sample_id = '29'
+        new_data = 'Flipkart'
+        self.db_instance.update(id=sample_id, newdata={
+            'recipient': new_data
+        })
+        expense_instance = self.db_instance.read_by_id(id=sample_id)
+        self.assertEqual(expense_instance.recipient, new_data)
+
+    def test_remove_expense_by_id(self):
+        self.__create_test_data()
+        sample_id = '29'
+        self.db_instance.delete(sample_id)
+        self.assertRaises(exc.NoResultFound, self.session.query(ExpenseDetails).filter_by(id=sample_id).one)
+
+
+
+
