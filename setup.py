@@ -14,7 +14,7 @@ setuptools.setup(
 
     license='MIT',
 
-    install_requires=[],
+    install_requires=['sqlalchemy'],
 
     classifiers=[
         'Programming Language :: Python :: 3.6'
