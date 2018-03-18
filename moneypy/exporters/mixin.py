@@ -3,13 +3,8 @@ from moneypy.exporters.models import ExpenseDetails, ExpenseLabels
 from sqlalchemy.orm import sessionmaker, exc
 
 
-class CRUDMixin:
+class CRUDMixin(object):
     label_count = 1
-
-    def __init__(self, db_engine):
-        Session = sessionmaker(bind=db_engine)
-        self.session = Session()
-
     def __get_label_instance(self, labels):
         label_instances = []
         for label in labels:
@@ -25,11 +20,9 @@ class CRUDMixin:
         return label_instances
 
     def insert(self, record):
-        self.session.add(
-            ExpenseDetails(
-                id=record['id'], date=record['date'], amount=record['amount'], recipient=record['recipient'],
-                description=record['description'], labels=self.__get_label_instance(record['labels'])
-            ))
+        record = dict(record)
+        record['labels']=self.__get_label_instance(record['labels'])
+        self.session.add(ExpenseDetails(**record))
         self.session.commit()
 
     def delete(self, id):
